@@ -16,7 +16,6 @@ struct ContentView: View {
     ]
     
     @State private var moves: [Move?] = Array(Array(repeating: nil, count: 9))
-    @State private var isHumanTurm = true
     var body: some View {
         GeometryReader { geometry in
             VStack{
@@ -27,7 +26,7 @@ struct ContentView: View {
                     ForEach(0..<9){ i in
                         ZStack{
                             Circle()
-                                .foregroundColor(.red).opacity(0.5)
+                                .foregroundColor(.purple).opacity(0.5)
                                 .frame(width: geometry.size.width/3 - 15,
                                        height: geometry.size.width/3 - 15)
                             Image(systemName: moves[i]?.indicator ?? "")
@@ -37,8 +36,13 @@ struct ContentView: View {
                         }
                         .onTapGesture {
                             if isCellOccupied(in: moves, forIndex: i){return}
-                            moves[i] = Move(player: isHumanTurm ? .human: .computer, boardIndex: i)
-                            isHumanTurm.toggle()
+                            moves[i] = Move(player: .human, boardIndex: i)
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                let computerPos = determineComputerMove(in: moves)
+                                moves[computerPos] = Move(player: .computer, boardIndex: computerPos)
+
+                            }
                         }
                         
                     }
@@ -53,6 +57,17 @@ struct ContentView: View {
     
     func isCellOccupied(in moves: [Move?], forIndex index: Int) ->Bool{
         return moves.contains(where: {$0?.boardIndex == index} )
+    }
+    
+    func determineComputerMove(in moves:[Move?]) -> Int {
+        var movePosition = Int.random(in: 0..<9)
+
+        while isCellOccupied(in: moves, forIndex: movePosition) {
+            movePosition = Int.random(in: 0..<9)
+
+        }
+        
+        return movePosition
     }
 }
 
